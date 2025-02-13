@@ -14,10 +14,6 @@ export function GetAllTasks() {
   return window['go']['main']['App']['GetAllTasks']();
 }
 
-export function Greet(arg1) {
-  return window['go']['main']['App']['Greet'](arg1);
-}
-
 export function ToggleTaskCompletion(arg1) {
   return window['go']['main']['App']['ToggleTaskCompletion'](arg1);
 }

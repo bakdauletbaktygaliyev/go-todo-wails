@@ -8,6 +8,4 @@ export function DeleteTask(arg1:number):Promise<void>;
 
 export function GetAllTasks():Promise<Array<models.Task>>;
 
-export function Greet(arg1:string):Promise<string>;
-
 export function ToggleTaskCompletion(arg1:number):Promise<void>;

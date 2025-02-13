@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"todo-app/backend"
 	"todo-app/backend/models"
 )
@@ -23,11 +22,6 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
-}
-
 // GetAllTasks fetches all tasks from SQLite
 func (a *App) GetAllTasks() ([]models.Task, error) {
 	return backend.GetAllTasks()
@@ -43,7 +37,7 @@ func (a *App) DeleteTask(id uint) error {
 	return backend.DeleteTask(id)
 }
 
-// ToggleTaskCompletion marks a task as done/undone
+// ToggleTaskCompletion marks a task as done or undone
 func (a *App) ToggleTaskCompletion(id uint) error {
 	return backend.ToggleTaskCompletion(id)
 }
