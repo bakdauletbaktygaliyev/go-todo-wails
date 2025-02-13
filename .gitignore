@@ -1,3 +1,5 @@
 build/bin
 node_modules
 frontend/dist
+preview-of-todo-app.png
+tasks.db
