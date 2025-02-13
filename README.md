@@ -20,7 +20,7 @@ This is a feature-rich To-Do List application built with React and Wails (Go bac
 
 - **Priority levels with color-coded labels**
 
-- **Persistent storage using \***SQLite**_ with _**Go**\* backend**
+- **Persistent storage using **SQLite** with **Go** backend**
 
 - **Modern UI with styled buttons and icons**
 
