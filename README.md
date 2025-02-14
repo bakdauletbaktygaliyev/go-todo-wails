@@ -5,6 +5,9 @@ This is a feature-rich To-Do List application built with React and Wails (Go bac
 ## Preview
 
 ![ToDo App Screenshot](preview-of-todo-app.png)
+![ToDo App Screenshot](preview-of-task-delete.png)
+![ToDo App Screenshot](preview-of-task-delete-completed.png)
+
 
 ## Features
 

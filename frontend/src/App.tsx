@@ -6,6 +6,7 @@ import {
   ToggleTaskCompletion,
 } from "../wailsjs/go/main/App";
 import "./App.css";
+import Swal from "sweetalert2";
 
 interface Task {
   id: number;
@@ -39,9 +40,26 @@ function App() {
   };
 
   const deleteTask = async (id: number) => {
-    await DeleteTask(id);
-    loadTasks();
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to undo this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await DeleteTask(id);
+        loadTasks();
+        Swal.fire("Deleted!", "The task has been removed.", "success");
+      }
+    });
   };
+  // const deleteTask = async (id: number) => {
+  //   await DeleteTask(id);
+  //   loadTasks();
+  // };
 
   const toggleTask = async (id: number) => {
     await ToggleTaskCompletion(id);
