@@ -4,8 +4,14 @@ import {models} from '../models';
 
 export function AddTask(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function ClearCompletedTasks():Promise<void>;
+
+export function DeleteAllTasks():Promise<void>;
+
 export function DeleteTask(arg1:number):Promise<void>;
 
 export function GetAllTasks():Promise<Array<models.Task>>;
 
 export function ToggleTaskCompletion(arg1:number):Promise<void>;
+
+export function UpdateTask(arg1:models.Task):Promise<void>;

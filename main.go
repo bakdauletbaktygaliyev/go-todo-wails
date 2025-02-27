@@ -2,7 +2,8 @@ package main
 
 import (
 	"embed"
-	database "todo-app/backend/db"
+	"todo-app/backend/service"
+	"todo-app/backend/storage/sqlite"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -13,15 +14,14 @@ import (
 var assets embed.FS
 
 func main() {
-	// initializing SQLite
-	database.InitDB()
-	// Create an instance of the app structure
-	app := NewApp()
+	storage, _ := sqlite.New("tasks.db")
+	taskService := service.NewTaskService(storage)
+	app := NewApp(taskService)
 
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "todo-app",
-		Width:  1024,
+		Width:  1524,
 		Height: 768,
 		AssetServer: &assetserver.Options{
 			Assets: assets,

@@ -6,6 +6,14 @@ export function AddTask(arg1, arg2, arg3) {
   return window['go']['main']['App']['AddTask'](arg1, arg2, arg3);
 }
 
+export function ClearCompletedTasks() {
+  return window['go']['main']['App']['ClearCompletedTasks']();
+}
+
+export function DeleteAllTasks() {
+  return window['go']['main']['App']['DeleteAllTasks']();
+}
+
 export function DeleteTask(arg1) {
   return window['go']['main']['App']['DeleteTask'](arg1);
 }
@@ -16,4 +24,8 @@ export function GetAllTasks() {
 
 export function ToggleTaskCompletion(arg1) {
   return window['go']['main']['App']['ToggleTaskCompletion'](arg1);
+}
+
+export function UpdateTask(arg1) {
+  return window['go']['main']['App']['UpdateTask'](arg1);
 }

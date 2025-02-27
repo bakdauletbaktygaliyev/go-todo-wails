@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import {
   GetAllTasks,
   AddTask,
+  UpdateTask,
   DeleteTask,
+  DeleteAllTasks,
   ToggleTaskCompletion,
+  ClearCompletedTasks,
 } from "../wailsjs/go/main/App";
 import "./App.css";
 import Swal from "sweetalert2";
@@ -14,6 +17,8 @@ interface Task {
   done: boolean;
   priority: string;
   dueDate: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 function App() {
@@ -21,24 +26,54 @@ function App() {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("Medium");
   const [dueDate, setDueDate] = useState("");
+  const [editTask, setEditTask] = useState<Task | null>(null);
+  const formatDate = (dateString: string) => {
+    if (!dateString) return ""; // Handle undefined or empty input safely
+    const date = new Date(dateString);
+    return date.toISOString(); // Returns "2025-03-06T07:56:00.000Z"
+  };
 
   useEffect(() => {
     loadTasks();
   }, []);
 
   const loadTasks = async () => {
-    const result: Task[] = await GetAllTasks();
-    setTasks(result);
+    try {
+      const result: Task[] = await GetAllTasks();
+      setTasks(
+        result.sort(
+          (a, b) =>
+            new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime(),
+        ),
+      );
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+    }
   };
 
-  const addTask = async () => {
+  const handleTaskSubmit = async () => {
     if (!title || !dueDate) return;
-    await AddTask(title, priority, dueDate);
-    setTitle("");
-    setDueDate("");
-    loadTasks();
-  };
 
+    if (editTask !== null) {
+      const updatedTask = {
+        id: editTask.id,
+        title,
+        priority,
+        dueDate: formatDate(editTask.dueDate),
+        done: tasks.find((t) => t.id === editTask.id)?.done || false,
+        createdAt: formatDate(editTask.createdAt),
+        updatedAt: formatDate(editTask.updatedAt),
+        convertValues: () => {},
+      };
+
+      await UpdateTask(updatedTask);
+    } else {
+      await AddTask(title, priority, dueDate);
+    }
+
+    resetForm();
+    await loadTasks();
+  };
   const deleteTask = async (id: number) => {
     Swal.fire({
       title: "Are you sure?",
@@ -56,14 +91,64 @@ function App() {
       }
     });
   };
-  // const deleteTask = async (id: number) => {
-  //   await DeleteTask(id);
-  //   loadTasks();
-  // };
+
+  const deleteAllTasks = async () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This will delete all tasks and cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete all tasks!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await DeleteAllTasks(); // Backend call to delete all tasks
+        loadTasks();
+        Swal.fire("Deleted!", "All tasks have been removed.", "success");
+      }
+    });
+  };
+
+  const clearCompletedTasks = async () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This will delete all completed tasks!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, clear them!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await ClearCompletedTasks();
+        loadTasks();
+        Swal.fire(
+          "Cleared!",
+          "All completed tasks have been removed.",
+          "success",
+        );
+      }
+    });
+  };
 
   const toggleTask = async (id: number) => {
     await ToggleTaskCompletion(id);
     loadTasks();
+  };
+
+  const startEditTask = (task: Task) => {
+    setEditTask(task);
+    setTitle(task.title);
+    setPriority(task.priority);
+    setDueDate(task.dueDate);
+  };
+
+  const resetForm = () => {
+    setEditTask(null);
+    setTitle("");
+    setPriority("Medium");
+    setDueDate("");
   };
 
   return (
@@ -72,7 +157,7 @@ function App() {
       <div className="task-inputs">
         <input
           type="text"
-          placeholder="New Task"
+          placeholder="Task Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -82,39 +167,109 @@ function App() {
           <option>High</option>
         </select>
         <input
-          type="date"
+          type="datetime-local"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
         />
-        <button onClick={addTask}>Add</button>
+        <button onClick={handleTaskSubmit}>
+          {editTask ? "Update" : "Add"}
+        </button>
+        {editTask && <button onClick={resetForm}>Cancel</button>}
       </div>
-      <ul className="task-list">
-        {tasks.map((task) => (
-          <li
-            key={task.id}
-            className={`task-item priority-${task.priority.toLowerCase()}`}
-          >
-            <span className={`task-title ${task.done ? "completed" : ""}`}>
-              {task.title} - <strong>{task.priority}</strong> (Due:{" "}
-              {task.dueDate})
-            </span>
-            <div className="task-actions">
-              <button
-                className="toggle-btn"
-                onClick={() => toggleTask(task.id)}
-              >
-                {task.done ? "Undo" : "Done"}
-              </button>
-              <button
-                className="delete-btn"
-                onClick={() => deleteTask(task.id)}
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+
+      <div className="extra-btns">
+        <button className="delete-btn" onClick={deleteAllTasks}>
+          Delete All Tasks
+        </button>
+
+        <button className="toggle-btn" onClick={clearCompletedTasks}>
+          Clear
+        </button>
+      </div>
+      <div className="task-sections">
+        <div className="task-column">
+          <h2>Pending Tasks</h2>
+
+          <ul className="task-list">
+            {tasks
+              .filter((task) => !task.done)
+              .map((task) => (
+                <li
+                  key={task.id}
+                  className={`task-item priority-${task.priority.toLowerCase()}`}
+                >
+                  <span>
+                    {task.title} ({task.priority}) - Due: {task.dueDate}
+                  </span>
+                  <small>
+                    Created: {new Date(task.createdAt).toLocaleString()}
+                  </small>
+                  <small>
+                    Updated: {new Date(task.updatedAt).toLocaleString()}
+                  </small>
+                  <div className="task-actions">
+                    <button
+                      className="toggle-btn"
+                      onClick={() => toggleTask(task.id)}
+                    >
+                      Done
+                    </button>
+                    <button
+                      className="toggle-btn"
+                      onClick={() => startEditTask(task)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="delete-btn"
+                      onClick={() => deleteTask(task.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        </div>
+
+        <div className="task-column">
+          <h2>Completed Tasks</h2>
+          <ul className="task-list completed-tasks">
+            {tasks
+              .filter((task) => task.done)
+              .map((task) => (
+                <li
+                  key={task.id}
+                  className={`task-item priority-${task.priority.toLowerCase()}`}
+                >
+                  <span>
+                    {task.title} ({task.priority}) - Due: {task.dueDate}
+                  </span>
+                  <small>
+                    Created: {new Date(task.createdAt).toLocaleString()}
+                  </small>
+                  <small>
+                    Updated: {new Date(task.updatedAt).toLocaleString()}
+                  </small>
+                  <div className="task-actions">
+                    <button
+                      className="toggle-btn"
+                      onClick={() => toggleTask(task.id)}
+                    >
+                      Undo
+                    </button>
+                    <button
+                      className="delete-btn"
+                      onClick={() => deleteTask(task.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
